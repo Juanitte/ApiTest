@@ -28,6 +28,12 @@ namespace ApiTest.Contexts
                 .HasForeignKey(t => t.UserID)
                 .IsRequired(false); // Puedes ajustar esto según tus necesidades
 
+            modelBuilder.Entity<Ticket>()
+                .HasMany(t => t.Messages)
+                .WithOne(m => m.Ticket)
+                .HasForeignKey(m => m.TicketID)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Configuración adicional para el tipo de clave primaria de IdentityRole
             modelBuilder.Entity<IdentityRole<int>>().ToTable("Roles").HasKey(r => r.Id);
 

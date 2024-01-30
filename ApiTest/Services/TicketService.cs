@@ -27,7 +27,7 @@ namespace ApiTest.Services
             var ticketDTOs = tickets.Select(ticket => new TicketDTO
             {
                 Id = ticket.Id,
-                Title = ticket.Title,
+                Name = ticket.Name,
                 Content = ticket.Content,
                 Email = ticket.Email,
                 Timestamp = ticket.Timestamp,
@@ -52,7 +52,7 @@ namespace ApiTest.Services
                 var ticketDTO = new TicketDTO
                 {
                     Id = ticket.Id,
-                    Title = ticket.Title,
+                    Name = ticket.Name,
                     Content = ticket.Content,
                     Email = ticket.Email,
                     Timestamp = ticket.Timestamp,
@@ -76,7 +76,7 @@ namespace ApiTest.Services
             if (existingTicket != null)
             {
                 // Actualizar propiedades del ticket.
-                existingTicket.Title = updatedTicket.Title;
+                existingTicket.Name = updatedTicket.Name;
                 existingTicket.Content = updatedTicket.Content;
                 existingTicket.Priority = updatedTicket.Priority;
                 existingTicket.State = updatedTicket.State;
@@ -141,7 +141,7 @@ namespace ApiTest.Services
                         var ticketDTO = new TicketDTO
                         {
                             Id = ticket.Id,
-                            Title = ticket.Title,
+                            Name = ticket.Name,
                             Content = ticket.Content,
                             Email = ticket.Email,
                             Timestamp = ticket.Timestamp,

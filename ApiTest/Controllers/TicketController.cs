@@ -1,10 +1,8 @@
-﻿using ApiTest.Contexts;
-using ApiTest.Models;
+﻿using ApiTest.Models;
 using ApiTest.Models.DTOs;
 using ApiTest.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ApiTest.Controllers
 {

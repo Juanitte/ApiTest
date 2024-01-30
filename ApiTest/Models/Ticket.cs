@@ -8,8 +8,9 @@ namespace ApiTest.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        public string Title { get; set; }
+        public string Name { get; set; }
         public string Content { get; set; }
+        public byte[]? Attachment { get; set; }
         public string Email { get; set; }
         public DateTime Timestamp { get; set; }
         public int UserID { get; set; }
@@ -17,11 +18,13 @@ namespace ApiTest.Models
         public string State { get; set; }
 
         [ForeignKey("UserID")]
-        public virtual User? User { get; set; }
+        public User? User { get; set; }
+        public List<Message?> Messages { get; set; } = new List<Message?>();
 
         public Ticket() {
-            this.Title = string.Empty;
+            this.Name = string.Empty;
             this.Content = string.Empty;
+            this.Email = string.Empty;
             this.Timestamp = DateTime.Now;
             this.UserID = -1;
             this.Priority = Priorities.NOT_SURE.ToString();
