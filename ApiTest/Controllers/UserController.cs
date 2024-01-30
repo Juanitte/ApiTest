@@ -1,11 +1,12 @@
 ﻿using ApiTest.Models;
+using ApiTest.Models.DTOs;
 using ApiTest.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiTest.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -24,6 +25,13 @@ namespace ApiTest.Controllers
             return Ok(users);
         }
 
+        [HttpGet("users-dto")]
+        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsersDTO()
+        {
+            var usersDTO = await _userService.GetAllUsersDTOAsync();
+            return Ok(usersDTO);
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
@@ -34,6 +42,17 @@ namespace ApiTest.Controllers
                 return NotFound();
             }
 
+            return user;
+        }
+
+        [HttpGet("{id}-dto")]
+        public async Task<ActionResult<UserDTO>> GetUserDTO(int id)
+        {
+            var user = await _userService.GetUserDTOByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
             return user;
         }
 

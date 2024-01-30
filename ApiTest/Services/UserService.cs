@@ -1,15 +1,17 @@
 ﻿using ApiTest.Models;
+using ApiTest.Models.DTOs;
+using ApiTest.Repositories;
 using Microsoft.AspNetCore.Identity;
 
 namespace ApiTest.Services
 {
     public class UserService
     {
-        private readonly UserRepository _userRepository;
+        private readonly GenericRepository<User> _userRepository;
 
-        public UserService(UserRepository userRepository)
+        public UserService(GenericRepository<User> repository)
         {
-            _userRepository = userRepository;
+            _userRepository = repository;
         }
 
         public async Task<List<User>> GetAllUsersAsync()
@@ -17,9 +19,41 @@ namespace ApiTest.Services
             return await _userRepository.GetAllAsync();
         }
 
+        public async Task<List<UserDTO>> GetAllUsersDTOAsync()
+        {
+            var users = await _userRepository.GetAllAsync();
+
+            var userDTOs = users.Select(user => new UserDTO
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber
+            }).ToList();
+
+            return userDTOs;
+        }
+
         public async Task<User> GetUserByIdAsync(int userId)
         {
             return await _userRepository.GetByIdAsync(userId);
+        }
+
+        public async Task<UserDTO> GetUserDTOByIdAsync(int userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user != null)
+            {
+                var userDTO = new UserDTO
+                {
+                    Id = user.Id,
+                    UserName = user.UserName,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber
+                };
+                return userDTO;
+            }
+            return null;
         }
 
         public async Task<User> CreateUserAsync(User user)
@@ -55,21 +89,6 @@ namespace ApiTest.Services
 
             await _userRepository.DeleteAsync(userId);
             return IdentityResult.Success;
-        }
-
-        public async Task<IdentityResult> ChangeUserPasswordAsync(int userId, string newPassword)
-        {
-            var user = await _userRepository.GetByIdAsync(userId);
-
-            if (user == null)
-            {
-                // Usuario no encontrado.
-                // Puedes manejar este caso según tus necesidades.
-                return IdentityResult.Failed(new IdentityError { Description = "User not found." });
-            }
-
-            // Cambiar la contraseña del usuario.
-            return await _userRepository.ChangeUserPasswordAsync(userId, newPassword);
         }
     }
 }

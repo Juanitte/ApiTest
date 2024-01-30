@@ -10,6 +10,7 @@ namespace ApiTest.Models
         public int Id { get; set; }
         public string Title { get; set; }
         public string Content { get; set; }
+        public string Email { get; set; }
         public DateTime Timestamp { get; set; }
         public int UserID { get; set; }
         public string Priority { get; set; }

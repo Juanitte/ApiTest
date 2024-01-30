@@ -1,43 +1,65 @@
 ﻿using ApiTest.Contexts;
 using ApiTest.Models;
+using ApiTest.Models.DTOs;
+using ApiTest.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiTest.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class TicketController : ControllerBase
     {
+        private readonly TicketService _ticketService;
 
-        private ApplicationDbContext _context;
-
-        public TicketController(ApplicationDbContext context)
+        public TicketController(TicketService ticketService)
         {
-            _context = context;
+            _ticketService = ticketService;
         }
 
         [Authorize(Roles = "SupportManager")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Ticket>>> GetTickets()
         {
-            if (_context.Tickets == null)
+            var tickets = await _ticketService.GetAllTicketsAsync();
+            if (tickets != null)
             {
-                return NotFound();
+                return tickets;
             }
-            return await _context.Tickets.ToListAsync();
+            return BadRequest();
+        }
+
+        [HttpGet("tickets-dto")]
+        public async Task<ActionResult<IEnumerable<TicketDTO>>> GetTicketsDTO()
+        {
+            var ticketsDTO = await _ticketService.GetAllTicketsDTOAsync();
+            if (ticketsDTO != null)
+            {
+                return ticketsDTO;
+            }
+            return BadRequest();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Ticket>> GetTicket(int id)
         {
-            if (_context.Tickets == null)
+            var ticket = await _ticketService.GetTicketByIdAsync(id);
+
+            if (ticket == null)
             {
                 return NotFound();
             }
-            var ticket = await _context.Tickets.FindAsync(id);
+
+            return ticket;
+        }
+
+        [HttpGet("{id}-dto")]
+        public async Task<ActionResult<TicketDTO>> GetTicketDTO(int id)
+        {
+            var ticket = await _ticketService.GetTicketDTOByIdAsync(id);
             if (ticket == null)
             {
                 return NotFound();
@@ -54,63 +76,37 @@ namespace ApiTest.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(ticket).State = EntityState.Modified;
+            // No necesitas manejar el EntityState.Modified aquí, UserService puede encargarse de eso.
+            await _ticketService.UpdateTicketAsync(id, ticket);
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TicketExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return Ok();
         }
 
         [HttpPost]
         public async Task<ActionResult<Ticket>> PostTicket(Ticket ticket)
         {
-            if (_context.Tickets == null)
+            if (ticket == null)
             {
-                return Problem("Entity set 'Context.Tickets'  is null.");
+                return Problem("Entity 'ticket' is null.");
             }
-            _context.Tickets.Add(ticket);
-            await _context.SaveChangesAsync();
+            await _ticketService.CreateTicketAsync(ticket);
 
-            return CreatedAtAction("GetTicket", new { id = ticket.Id }, ticket);
+            return Ok(ticket);
         }
 
-        [Authorize(Roles = "SupportManager,SupportTechnician")]
+        [Authorize(Roles = "SupportManager")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTicket(int id)
         {
-            if (_context.Tickets == null)
-            {
-                return NotFound();
-            }
-            var ticket = await _context.Tickets.FindAsync(id);
+            var ticket = await _ticketService.GetTicketByIdAsync(id);
             if (ticket == null)
             {
                 return NotFound();
             }
 
-            _context.Tickets.Remove(ticket);
-            await _context.SaveChangesAsync();
+            await _ticketService.DeleteTicketAsync(id);
 
-            return NoContent();
-        }
-
-        private bool TicketExists(int id)
-        {
-            return (_context.Tickets?.Any(e => e.Id == id)).GetValueOrDefault();
+            return Ok() ;
         }
     }
 }

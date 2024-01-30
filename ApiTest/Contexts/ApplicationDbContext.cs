@@ -23,7 +23,10 @@ namespace ApiTest.Contexts
 
             // Configuración adicional para la relación entre Ticket y User
             modelBuilder.Entity<Ticket>()
-                .HasOne(t => t.User);
+                .HasOne(t => t.User)
+                .WithMany(u => u.Tickets) // Agrega la propiedad de navegación inversa en la clase User
+                .HasForeignKey(t => t.UserID)
+                .IsRequired(false); // Puedes ajustar esto según tus necesidades
 
             // Configuración adicional para el tipo de clave primaria de IdentityRole
             modelBuilder.Entity<IdentityRole<int>>().ToTable("Roles").HasKey(r => r.Id);

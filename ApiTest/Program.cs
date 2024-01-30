@@ -1,6 +1,7 @@
 ﻿using ApiTest.Authentication;
 using ApiTest.Contexts;
 using ApiTest.Models;
+using ApiTest.Repositories;
 using ApiTest.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,11 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options => {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+builder.Services.AddScoped<DbContext, ApplicationDbContext>();
+builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<GenericRepository<User>>();
+builder.Services.AddScoped<GenericRepository<Ticket>>();
 
 builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
 {
@@ -37,6 +43,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<TicketService>();
 
 var app = builder.Build();
 
@@ -50,7 +57,9 @@ using (var scope = app.Services.CreateScope())
 
     // Apply migrations and make sure that the default users and roles have been created
     dbContext.Database.Migrate();
-    Roles.Initialize(userManager, roleManager);
+
+    // Initialize roles and users
+    await Roles.Initialize(userManager, roleManager);
 }
 
 // Configure the HTTP request pipeline.
@@ -64,4 +73,4 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.Run();
+await app.RunAsync();
