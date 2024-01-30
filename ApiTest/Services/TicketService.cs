@@ -2,6 +2,7 @@
 using ApiTest.Models.DTOs;
 using ApiTest.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ApiTest.Services
 {
@@ -90,38 +91,69 @@ namespace ApiTest.Services
             await _ticketRepository.DeleteAsync(ticketId);
         }
 
-        [Authorize(Roles = "SupportManager")]
-        public async Task ChangePriority(int ticketId, Priorities priority)
+        public async Task<bool> ChangePriority(int ticketId, Priorities priority)
         {
             var ticket = await _ticketRepository.GetByIdAsync(ticketId);
             if (ticket != null)
             {
                 ticket.Priority = priority.ToString();
                 await _ticketRepository.UpdateAsync(ticket);
+                return true;
             }
+            return false;
         }
 
-        [Authorize(Roles = "SupportManager")]
-        public async Task ChangeState(int ticketId, States state)
+        public async Task<bool> ChangeState(int ticketId, States state)
         {
             var ticket = await _ticketRepository.GetByIdAsync(ticketId);
             if(ticket != null)
             {
                 ticket.State = state.ToString();
                 await _ticketRepository.UpdateAsync(ticket);
+                return true;
             }
+            return false;
         }
 
-        [Authorize(Roles = "SupportManager")]
-        public async Task AsignTicket(int ticketId, User user)
+        public async Task<bool> AsignTicket(int ticketId, User user)
         {
             var ticket = await _ticketRepository.GetByIdAsync(ticketId);
             if (ticket != null)
             {
                 ticket.User = user;
                 ticket.UserID = user.Id;
-                await _ticketRepository.UpdateAsync(ticket);
+                await _ticketRepository.UpdateAsync(ticket);   
+                return true;
             }
+            return false;
+        }
+
+        public async Task<List<TicketDTO>> GetTicketsDTOByUser(User user)
+        {
+            var tickets = await _ticketRepository.GetAllAsync();
+            var result = new List<TicketDTO>();
+            if(tickets != null)
+            {
+                foreach (var ticket in tickets)
+                {
+                    if (ticket.User.Id == user.Id)
+                    {
+                        var ticketDTO = new TicketDTO
+                        {
+                            Id = ticket.Id,
+                            Title = ticket.Title,
+                            Content = ticket.Content,
+                            Email = ticket.Email,
+                            Timestamp = ticket.Timestamp,
+                            Priority = ticket.Priority,
+                            State = ticket.State
+                        };
+                        result.Add(ticketDTO);
+                    }
+                }
+                return result;
+            }
+            return null;
         }
     }
 }

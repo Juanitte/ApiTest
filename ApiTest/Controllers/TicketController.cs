@@ -108,5 +108,53 @@ namespace ApiTest.Controllers
 
             return Ok() ;
         }
+
+        [Authorize(Roles = "SupportManager")]
+        [HttpPut("{id}-prio")]
+        public async Task<IActionResult> ChangePriority(int ticketId, Priorities priority)
+        {
+            var result = await _ticketService.ChangePriority(ticketId, priority);
+            if (result)
+            {
+                return Ok();
+            }
+            return BadRequest();
+        }
+
+        [Authorize(Roles = "SupportManager")]
+        [HttpPut("{id}-state")]
+        public async Task<IActionResult> ChangeState(int ticketId, States state)
+        {
+            var result = await _ticketService.ChangeState(ticketId, state);
+            if (result)
+            {
+                return Ok();
+            }
+            return BadRequest();
+        }
+
+        [Authorize(Roles = "SupportManager")]
+        [HttpPut("{id}-asign")]
+        public async Task<IActionResult> AsignTicket(int ticketId, User user)
+        {
+            var result = await _ticketService.AsignTicket(ticketId, user);
+            if (result)
+            {
+                return Ok();
+            }
+            return BadRequest();
+        }
+
+        [Authorize(Roles = "SupportTechnician")]
+        [HttpGet("{id}-{user.id}")]
+        public async Task<ActionResult<IEnumerable<TicketDTO>>> GetTicketsDTOByUser(User user)
+        {
+            var ticketsDTO = await _ticketService.GetTicketsDTOByUser(user);
+            if (ticketsDTO == null)
+            {
+                return BadRequest();
+            }
+            return ticketsDTO;
+        }
     }
 }
