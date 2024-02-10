@@ -22,6 +22,7 @@ builder.Services.AddScoped<DbContext, ApplicationDbContext>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<GenericRepository<User>>();
 builder.Services.AddScoped<GenericRepository<Ticket>>();
+builder.Services.AddScoped<GenericRepository<Message>>();
 
 builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
 {
@@ -44,6 +45,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<TicketService>();
+builder.Services.AddScoped<MessageService>();
 
 var app = builder.Build();
 

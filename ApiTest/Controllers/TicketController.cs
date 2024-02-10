@@ -18,7 +18,7 @@ namespace ApiTest.Controllers
             _ticketService = ticketService;
         }
 
-        [Authorize(Roles = "SupportManager")]
+        //[Authorize(Roles = "SupportManager")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Ticket>>> GetTickets()
         {
@@ -65,7 +65,7 @@ namespace ApiTest.Controllers
             return ticket;
         }
 
-        [Authorize(Roles = "SupportManager")]
+        //[Authorize(Roles = "SupportManager")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTicket(int id, Ticket ticket)
         {
@@ -92,7 +92,7 @@ namespace ApiTest.Controllers
             return Ok(ticket);
         }
 
-        [Authorize(Roles = "SupportManager")]
+        //[Authorize(Roles = "SupportManager")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTicket(int id)
         {
@@ -107,7 +107,7 @@ namespace ApiTest.Controllers
             return Ok() ;
         }
 
-        [Authorize(Roles = "SupportManager")]
+        //[Authorize(Roles = "SupportManager")]
         [HttpPut("{id}-prio")]
         public async Task<IActionResult> ChangePriority(int ticketId, Priorities priority)
         {
@@ -119,7 +119,7 @@ namespace ApiTest.Controllers
             return BadRequest();
         }
 
-        [Authorize(Roles = "SupportManager")]
+       // [Authorize(Roles = "SupportManager")]
         [HttpPut("{id}-state")]
         public async Task<IActionResult> ChangeState(int ticketId, States state)
         {
@@ -131,11 +131,11 @@ namespace ApiTest.Controllers
             return BadRequest();
         }
 
-        [Authorize(Roles = "SupportManager")]
+        //[Authorize(Roles = "SupportManager")]
         [HttpPut("{id}-asign")]
-        public async Task<IActionResult> AsignTicket(int ticketId, User user)
+        public async Task<IActionResult> AsignTicket(int ticketId, int userId)
         {
-            var result = await _ticketService.AsignTicket(ticketId, user);
+            var result = await _ticketService.AsignTicket(ticketId, userId);
             if (result)
             {
                 return Ok();
@@ -143,11 +143,11 @@ namespace ApiTest.Controllers
             return BadRequest();
         }
 
-        [Authorize(Roles = "SupportTechnician")]
+        //[Authorize(Roles = "SupportTechnician")]
         [HttpGet("{id}-{user.id}")]
-        public async Task<ActionResult<IEnumerable<TicketDTO>>> GetTicketsDTOByUser(User user)
+        public async Task<ActionResult<IEnumerable<TicketDTO>>> GetTicketsDTOByUser(int userId)
         {
-            var ticketsDTO = await _ticketService.GetTicketsDTOByUser(user);
+            var ticketsDTO = await _ticketService.GetTicketsDTOByUser(userId);
             if (ticketsDTO == null)
             {
                 return BadRequest();

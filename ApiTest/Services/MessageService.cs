@@ -46,7 +46,7 @@ namespace ApiTest.Services
             await _messageRepository.DeleteAsync(messageId);
         }
 
-        public async Task<List<Message>> GetMessagesByTicketAsync(Ticket ticket)
+        public async Task<List<Message>> GetMessagesByTicketAsync(int ticketId)
         {
             var messages = await _messageRepository.GetAllAsync();
 
@@ -57,7 +57,7 @@ namespace ApiTest.Services
             List<Message> result = new List<Message>();
             foreach (var message in messages)
             {
-                if (message.TicketID == ticket.Id)
+                if (message.TicketID == ticketId)
                 {
                     result.Add(message);
                 }

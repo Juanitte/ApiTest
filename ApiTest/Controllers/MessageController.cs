@@ -55,11 +55,20 @@ namespace ApiTest.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Message>> PostMessage(Message message)
+        public async Task<ActionResult<Message>> PostMessage(string messageContent, byte[]? messageAttachment, int ticketId)
         {
+            Message message;
+            if(messageAttachment == null)
+            {
+                message = new Message(messageContent,ticketId);
+            }
+            else
+            {
+                message = new Message(messageContent,messageAttachment,ticketId);
+            }
             if (message == null)
             {
-                return Problem("Entity 'ticket' is null.");
+                return Problem("Entity 'message' is null.");
             }
             await _messageService.CreateMessageAsync(message);
 
@@ -81,9 +90,9 @@ namespace ApiTest.Controllers
         }
 
         [HttpGet("messages-ticket{ticket.id}")]
-        public async Task<ActionResult<IEnumerable<Message>>> GetMessagesByTicket(Ticket ticket)
+        public async Task<ActionResult<IEnumerable<Message>>> GetMessagesByTicket(int ticketId)
         {
-            var messages = await _messageService.GetMessagesByTicketAsync(ticket);
+            var messages = await _messageService.GetMessagesByTicketAsync(ticketId);
             if (messages == null)
             {
                 return BadRequest();

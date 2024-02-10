@@ -115,20 +115,19 @@ namespace ApiTest.Services
             return false;
         }
 
-        public async Task<bool> AsignTicket(int ticketId, User user)
+        public async Task<bool> AsignTicket(int ticketId, int userId)
         {
             var ticket = await _ticketRepository.GetByIdAsync(ticketId);
             if (ticket != null)
             {
-                ticket.User = user;
-                ticket.UserID = user.Id;
+                ticket.UserID = userId;
                 await _ticketRepository.UpdateAsync(ticket);   
                 return true;
             }
             return false;
         }
 
-        public async Task<List<TicketDTO>> GetTicketsDTOByUser(User user)
+        public async Task<List<TicketDTO>> GetTicketsDTOByUser(int userId)
         {
             var tickets = await _ticketRepository.GetAllAsync();
             var result = new List<TicketDTO>();
@@ -136,7 +135,7 @@ namespace ApiTest.Services
             {
                 foreach (var ticket in tickets)
                 {
-                    if (ticket.User.Id == user.Id)
+                    if (ticket.User.Id == userId)
                     {
                         var ticketDTO = new TicketDTO
                         {
