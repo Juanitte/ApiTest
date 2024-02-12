@@ -36,6 +36,7 @@ namespace ApiTest.Authentication
                 {
                     UserName = "SupportManager",
                     Email = supportManagerEmail,
+                    PhoneNumber = "123456789"
                 };
 
                 string supportManagerPassword = "Admin123#";

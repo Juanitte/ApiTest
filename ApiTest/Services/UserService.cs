@@ -25,7 +25,6 @@ namespace ApiTest.Services
 
             var userDTOs = users.Select(user => new UserDTO
             {
-                Id = user.Id,
                 UserName = user.UserName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber
@@ -46,7 +45,6 @@ namespace ApiTest.Services
             {
                 var userDTO = new UserDTO
                 {
-                    Id = user.Id,
                     UserName = user.UserName,
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber
@@ -73,6 +71,7 @@ namespace ApiTest.Services
             // Actualizar propiedades del usuario.
             existingUser.UserName = updatedUser.UserName;
             existingUser.Email = updatedUser.Email;
+            existingUser.PhoneNumber = updatedUser.PhoneNumber;
 
             await _userRepository.UpdateAsync(existingUser);
             return IdentityResult.Success;

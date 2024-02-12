@@ -46,15 +46,16 @@ namespace ApiTest.Controllers
         public async Task<IActionResult> PutMessage(int id, MessageDTO messageDTO)
         {
             Message message = await _messageService.GetMessageByIdAsync(id);
-            if (id != message.Id)
+            if (message == null)
             {
                 return BadRequest();
             }
 
             message.Content = messageDTO.Content;
             message.TicketID = messageDTO.TicketID;
-            /*if (!messageDTO.Attachments.IsNullOrEmpty())
+            if (!messageDTO.Attachments.IsNullOrEmpty())
             {
+                message.AttachmentPaths.Clear();
                 foreach (var attachment in messageDTO.Attachments)
                 {
                     if (attachment != null)
@@ -63,7 +64,7 @@ namespace ApiTest.Controllers
                         message.AttachmentPaths.Add(attachmentPath);
                     }
                 }
-            }*/
+            }
 
             // No necesitas manejar el EntityState.Modified aquí, UserService puede encargarse de eso.
             await _messageService.UpdateMessageAsync(id, message);

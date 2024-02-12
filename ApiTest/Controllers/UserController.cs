@@ -2,6 +2,7 @@
 using ApiTest.Models.DTOs;
 using ApiTest.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiTest.Controllers
@@ -12,10 +13,13 @@ namespace ApiTest.Controllers
     public class UserController : ControllerBase
     {
         private readonly UserService _userService;
-
-        public UserController(UserService userService)
+        private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole<int>> _roleManager;
+        public UserController(UserService userService, UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager)
         {
             _userService = userService;
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         [HttpGet]
@@ -57,19 +61,22 @@ namespace ApiTest.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        public async Task<IActionResult> PutUser(int id, UserDTO userDTO)
         {
-            if (id != user.Id)
+            User user = await _userService.GetUserByIdAsync(id);
+            if (user == null)
             {
                 return BadRequest();
             }
-
+            user.UserName = userDTO.UserName;
+            user.Email = userDTO.Email;
+            user.PhoneNumber = userDTO.PhoneNumber;
             // No necesitas manejar el EntityState.Modified aquí, UserService puede encargarse de eso.
             var result = await _userService.UpdateUserAsync(id, user);
 
             if (result.Succeeded)
             {
-                return NoContent();
+                return Ok(result);
             }
             else
             {
@@ -79,19 +86,22 @@ namespace ApiTest.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        public async Task<ActionResult<User>> PostUser(UserDTO userDTO, string password)
         {
-            var createdUser = await _userService.CreateUserAsync(user);
+            var user = new User
+            {
+                UserName = userDTO.UserName,
+                Email = userDTO.Email,
+                PhoneNumber = userDTO.PhoneNumber
+            };
+            
+            var createUser = await _userManager.CreateAsync(user, password);
 
-            if (createdUser != null)
+            if (!createUser.Succeeded)
             {
-                return CreatedAtAction("GetUser", new { id = createdUser.Id }, createdUser);
+                return Problem();
             }
-            else
-            {
-                // Maneja errores de creación según sea necesario.
-                return Problem("Error creating user.");
-            }
+            return Ok(createUser);
         }
 
         [HttpDelete("{id}")]
