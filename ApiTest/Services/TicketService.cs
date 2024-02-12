@@ -26,13 +26,8 @@ namespace ApiTest.Services
 
             var ticketDTOs = tickets.Select(ticket => new TicketDTO
             {
-                Id = ticket.Id,
                 Name = ticket.Name,
-                Content = ticket.Content,
-                Email = ticket.Email,
-                Timestamp = ticket.Timestamp,
-                Priority = ticket.Priority,
-                State = ticket.State
+                Email = ticket.Email
             }).ToList();
 
             return ticketDTOs;
@@ -51,13 +46,8 @@ namespace ApiTest.Services
             {
                 var ticketDTO = new TicketDTO
                 {
-                    Id = ticket.Id,
                     Name = ticket.Name,
-                    Content = ticket.Content,
-                    Email = ticket.Email,
-                    Timestamp = ticket.Timestamp,
-                    Priority = ticket.Priority,
-                    State = ticket.State
+                    Email = ticket.Email
                 };
                 return ticketDTO;
             }
@@ -77,9 +67,9 @@ namespace ApiTest.Services
             {
                 // Actualizar propiedades del ticket.
                 existingTicket.Name = updatedTicket.Name;
-                existingTicket.Content = updatedTicket.Content;
                 existingTicket.Priority = updatedTicket.Priority;
                 existingTicket.State = updatedTicket.State;
+                existingTicket.Messages = updatedTicket.Messages;
 
                 await _ticketRepository.UpdateAsync(existingTicket);
             }
@@ -139,13 +129,8 @@ namespace ApiTest.Services
                     {
                         var ticketDTO = new TicketDTO
                         {
-                            Id = ticket.Id,
                             Name = ticket.Name,
-                            Content = ticket.Content,
-                            Email = ticket.Email,
-                            Timestamp = ticket.Timestamp,
-                            Priority = ticket.Priority,
-                            State = ticket.State
+                            Email = ticket.Email
                         };
                         result.Add(ticketDTO);
                     }

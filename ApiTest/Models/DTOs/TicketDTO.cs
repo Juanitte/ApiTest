@@ -2,13 +2,20 @@
 {
     public class TicketDTO
     {
-        public int Id { get; set; }
         public string Name { get; set; }
-        public string Content { get; set; }
         public string Email { get; set; }
-        public DateTime Timestamp { get; set; }
-        public string Priority { get; set; }
-        public string State { get; set; }
+
+        public TicketDTO() 
+        {
+            this.Name = string.Empty;
+            this.Email = string.Empty;
+        }
+
+        public TicketDTO(string name, string email) 
+        {
+            this.Name = name;
+            this.Email = email;
+        }
         
     }
 }

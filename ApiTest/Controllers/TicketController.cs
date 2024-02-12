@@ -3,6 +3,7 @@ using ApiTest.Models.DTOs;
 using ApiTest.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ApiTest.Controllers
 {
@@ -80,13 +81,51 @@ namespace ApiTest.Controllers
             return Ok();
         }
 
-        [HttpPost]
-        public async Task<ActionResult<Ticket>> PostTicket(Ticket ticket)
+        [HttpPut("{id}-add-message")]
+        public async Task<IActionResult> AddMessageToTicket(int id, MessageDTO messageDTO)
         {
-            if (ticket == null)
+            Ticket ticket = await _ticketService.GetTicketByIdAsync(id);
+
+            if(ticket == null)
+            {
+                return BadRequest();
+            }
+            ticket.Messages.Add(new Message(messageDTO.Content, messageDTO.TicketID));
+
+            await _ticketService.UpdateTicketAsync(id, ticket);
+
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Ticket>> PostTicket(TicketDTO ticketDTO, MessageDTO messageDTO)
+        {
+            if (ticketDTO == null)
             {
                 return Problem("Entity 'ticket' is null.");
             }
+            if (messageDTO == null)
+            {
+                return Problem("Entity 'message' is null");
+            }
+
+            Ticket ticket = new Ticket(ticketDTO.Name, ticketDTO.Email);
+
+            Message message = new Message(messageDTO.Content, messageDTO.TicketID);
+            if (!messageDTO.Attachments.IsNullOrEmpty())
+            {
+                foreach (var attachment in messageDTO.Attachments)
+                {
+                    if(attachment != null)
+                    {
+                        string attachmentPath = await SaveAttachmentToFileSystem(attachment);
+                        message.AttachmentPaths.Add(attachmentPath);
+                    }
+                }
+            }
+
+            ticket.Messages.Add(message);
+
             await _ticketService.CreateTicketAsync(ticket);
 
             return Ok(ticket);
@@ -153,6 +192,22 @@ namespace ApiTest.Controllers
                 return BadRequest();
             }
             return ticketsDTO;
+        }
+
+        private async Task<string> SaveAttachmentToFileSystem(IFormFile attachment)
+        {
+            // Generar un nombre de archivo único
+            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(attachment.FileName);
+            // Ruta donde se guardará el archivo en el sistema de archivos
+            var filePath = Path.Combine("C:/ProyectoIoT/Back/ApiTest/AttachmentStorage", fileName);
+
+            // Guardar el archivo en el sistema de archivos
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await attachment.CopyToAsync(stream);
+            }
+
+            return filePath;
         }
     }
 }

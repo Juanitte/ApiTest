@@ -1,7 +1,9 @@
 ﻿using ApiTest.Models;
+using ApiTest.Models.DTOs;
 using ApiTest.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ApiTest.Controllers
 {
@@ -41,12 +43,27 @@ namespace ApiTest.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutMessage(int id, Message message)
+        public async Task<IActionResult> PutMessage(int id, MessageDTO messageDTO)
         {
+            Message message = await _messageService.GetMessageByIdAsync(id);
             if (id != message.Id)
             {
                 return BadRequest();
             }
+
+            message.Content = messageDTO.Content;
+            message.TicketID = messageDTO.TicketID;
+            /*if (!messageDTO.Attachments.IsNullOrEmpty())
+            {
+                foreach (var attachment in messageDTO.Attachments)
+                {
+                    if (attachment != null)
+                    {
+                        string attachmentPath = await SaveAttachmentToFileSystem(attachment);
+                        message.AttachmentPaths.Add(attachmentPath);
+                    }
+                }
+            }*/
 
             // No necesitas manejar el EntityState.Modified aquí, UserService puede encargarse de eso.
             await _messageService.UpdateMessageAsync(id, message);
@@ -55,16 +72,27 @@ namespace ApiTest.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Message>> PostMessage(string messageContent, byte[]? messageAttachment, int ticketId)
+        public async Task<ActionResult<Message>> PostMessage(MessageDTO messageDTO)
         {
             Message message;
-            if(messageAttachment == null)
+            if(messageDTO.Attachments.IsNullOrEmpty())
             {
-                message = new Message(messageContent,ticketId);
+                message = new Message(messageDTO.Content, messageDTO.TicketID);
             }
             else
             {
-                message = new Message(messageContent,messageAttachment,ticketId);
+                message = new Message(messageDTO.Content, messageDTO.TicketID);
+                if (!messageDTO.Attachments.IsNullOrEmpty())
+                {
+                    foreach (var attachment in messageDTO.Attachments)
+                    {
+                        if (attachment != null)
+                        {
+                            string attachmentPath = await SaveAttachmentToFileSystem(attachment);
+                            message.AttachmentPaths.Add(attachmentPath);
+                        }
+                    }
+                }
             }
             if (message == null)
             {
@@ -98,6 +126,22 @@ namespace ApiTest.Controllers
                 return BadRequest();
             }
             return messages;
+        }
+
+        private async Task<string> SaveAttachmentToFileSystem(IFormFile attachment)
+        {
+            // Generar un nombre de archivo único
+            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(attachment.FileName);
+            // Ruta donde se guardará el archivo en el sistema de archivos
+            var filePath = Path.Combine("C:/ProyectoIoT/Back/ApiTest/AttachmentStorage", fileName);
+
+            // Guardar el archivo en el sistema de archivos
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await attachment.CopyToAsync(stream);
+            }
+
+            return filePath;
         }
     }
 }

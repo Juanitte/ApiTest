@@ -34,7 +34,7 @@ namespace ApiTest.Services
             {
                 // Actualizar propiedades del ticket.
                 existingMessage.Content = updatedMessage.Content;
-                existingMessage.Attachment = updatedMessage.Attachment;
+                existingMessage.AttachmentPaths = updatedMessage.AttachmentPaths;
 
                 await _messageRepository.UpdateAsync(existingMessage);
             }
