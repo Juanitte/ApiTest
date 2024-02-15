@@ -98,33 +98,36 @@ namespace ApiTest.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Ticket>> PostTicket(TicketDTO ticketDTO, MessageDTO messageDTO)
+        public async Task<ActionResult<Ticket>> PostTicket(TicketCreationDTO ticketCreatorDTO)
         {
-            if (ticketDTO == null)
+            if (ticketCreatorDTO == null)
             {
-                return Problem("Entity 'ticket' is null.");
+                return Problem("Entity 'ticketCreatorDTO' is null.");
             }
-            if (messageDTO == null)
+            if (ticketCreatorDTO.TicketDTO == null)
             {
-                return Problem("Entity 'message' is null");
+                return Problem("Entity 'ticketDTO' is null");
             }
 
-            Ticket ticket = new Ticket(ticketDTO.Name, ticketDTO.Email);
-
-            Message message = new Message(messageDTO.Content, messageDTO.TicketID);
-            if (!messageDTO.Attachments.IsNullOrEmpty())
+            Ticket ticket = new Ticket(ticketCreatorDTO.TicketDTO.Name, ticketCreatorDTO.TicketDTO.Email);
+            if (ticketCreatorDTO.MessageDTO != null)
             {
-                foreach (var attachment in messageDTO.Attachments)
+                Message message = new Message(ticketCreatorDTO.MessageDTO.Content, ticketCreatorDTO.MessageDTO.TicketID);
+                if (!ticketCreatorDTO.MessageDTO.Attachments.IsNullOrEmpty())
                 {
-                    if(attachment != null)
+                    foreach (var attachment in ticketCreatorDTO.MessageDTO.Attachments)
                     {
-                        string attachmentPath = await SaveAttachmentToFileSystem(attachment);
-                        message.AttachmentPaths.Add(attachmentPath);
+                        if (attachment != null)
+                        {
+                            string attachmentPath = await SaveAttachmentToFileSystem(attachment);
+                            Attachment newAttachment = new Attachment(attachmentPath, message.Id);
+                            message.AttachmentPaths.Add(newAttachment);
+                        }
                     }
                 }
+                ticket.Messages.Add(message);
             }
 
-            ticket.Messages.Add(message);
 
             await _ticketService.CreateTicketAsync(ticket);
 

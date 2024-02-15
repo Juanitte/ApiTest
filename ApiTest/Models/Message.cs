@@ -9,7 +9,7 @@ namespace ApiTest.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public string Content { get; set; }
-        public List<string?> AttachmentPaths { get; set; } = new List<string?>();
+        public List<Attachment?> AttachmentPaths { get; set; } = new List<Attachment?>();
         public int TicketID { get; set; }
         [ForeignKey("TicketID")]
         public Ticket? Ticket { get; set; }
@@ -30,7 +30,7 @@ namespace ApiTest.Models
             Ticket = null;
         }
 
-        public Message(string content, List<string?> attachmentPaths, int ticketId)
+        public Message(string content, List<Attachment?> attachmentPaths, int ticketId)
         {
             Id = 0;
             Content = content;

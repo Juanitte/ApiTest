@@ -20,6 +20,7 @@ namespace ApiTest.Contexts
 
             modelBuilder.Entity<Ticket>().ToTable("ticket");
             modelBuilder.Entity<User>().ToTable("user");
+            modelBuilder.Entity<Attachment>().ToTable("attachment");
 
             // Configuración adicional para la relación entre Ticket y User
             modelBuilder.Entity<Ticket>()
@@ -32,7 +33,13 @@ namespace ApiTest.Contexts
                 .HasMany(t => t.Messages)
                 .WithOne(m => m.Ticket)
                 .HasForeignKey(m => m.TicketID)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Attachment>()
+                .HasOne(t => t.Message)
+                .WithMany(m => m.AttachmentPaths)
+                .HasForeignKey(t => t.MessageID)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Configuración adicional para el tipo de clave primaria de IdentityRole
             modelBuilder.Entity<IdentityRole<int>>().ToTable("Roles").HasKey(r => r.Id);

@@ -61,7 +61,8 @@ namespace ApiTest.Controllers
                     if (attachment != null)
                     {
                         string attachmentPath = await SaveAttachmentToFileSystem(attachment);
-                        message.AttachmentPaths.Add(attachmentPath);
+                        Attachment newAttachment = new Attachment(attachmentPath, message.Id);
+                        message.AttachmentPaths.Add(newAttachment);
                     }
                 }
             }
@@ -90,7 +91,8 @@ namespace ApiTest.Controllers
                         if (attachment != null)
                         {
                             string attachmentPath = await SaveAttachmentToFileSystem(attachment);
-                            message.AttachmentPaths.Add(attachmentPath);
+                            Attachment newAttachment = new Attachment(attachmentPath, message.Id);
+                            message.AttachmentPaths.Add(newAttachment);
                         }
                     }
                 }
