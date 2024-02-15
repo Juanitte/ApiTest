@@ -1,17 +1,13 @@
 ﻿namespace ApiTest.Models.DTOs
 {
-    public class UserDTO
+    public class LoginDTO
     {
-        public string UserName { get; set; }
         public string Email { get; set; }
-        public string PhoneNumber { get; set; }
         public string Password { get; set; }
 
-        public UserDTO()
+        public LoginDTO()
         {
-            this.UserName = string.Empty;
             this.Email = string.Empty;
-            this.PhoneNumber = string.Empty;
             this.Password = string.Empty;
         }
     }

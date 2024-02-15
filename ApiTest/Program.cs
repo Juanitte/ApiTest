@@ -3,6 +3,7 @@ using ApiTest.Contexts;
 using ApiTest.Models;
 using ApiTest.Repositories;
 using ApiTest.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,12 +33,15 @@ builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
 .AddDefaultTokenProviders()
 .AddRoles<IdentityRole<int>>();
 
-
-
 // Authentication config
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    // Configure your identity options here
+});
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.Cookie.Name = "YourCookieName";
+    options.Cookie.Name = "ApiTestLogin";
     options.ExpireTimeSpan = TimeSpan.FromDays(1);
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
