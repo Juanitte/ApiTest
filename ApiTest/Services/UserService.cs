@@ -19,39 +19,9 @@ namespace ApiTest.Services
             return await _userRepository.GetAllAsync();
         }
 
-        public async Task<List<UserDTO>> GetAllUsersDTOAsync()
-        {
-            var users = await _userRepository.GetAllAsync();
-
-            var userDTOs = users.Select(user => new UserDTO
-            {
-                UserName = user.UserName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber
-            }).ToList();
-
-            return userDTOs;
-        }
-
         public async Task<User> GetUserByIdAsync(int userId)
         {
             return await _userRepository.GetByIdAsync(userId);
-        }
-
-        public async Task<UserDTO> GetUserDTOByIdAsync(int userId)
-        {
-            var user = await _userRepository.GetByIdAsync(userId);
-            if (user != null)
-            {
-                var userDTO = new UserDTO
-                {
-                    UserName = user.UserName,
-                    Email = user.Email,
-                    PhoneNumber = user.PhoneNumber
-                };
-                return userDTO;
-            }
-            return null;
         }
 
         public async Task<User> CreateUserAsync(User user)

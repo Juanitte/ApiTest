@@ -20,38 +20,9 @@ namespace ApiTest.Services
             return await _ticketRepository.GetAllAsync();
         }
 
-        public async Task<List<TicketDTO>> GetAllTicketsDTOAsync()
-        {
-            var tickets = await _ticketRepository.GetAllAsync();
-
-            var ticketDTOs = tickets.Select(ticket => new TicketDTO
-            {
-                Name = ticket.Name,
-                Email = ticket.Email
-            }).ToList();
-
-            return ticketDTOs;
-        }
-
         public async Task<Ticket> GetTicketByIdAsync(int ticketId)
         {
             return await _ticketRepository.GetByIdAsync(ticketId);
-        }
-
-        public async Task<TicketDTO> GetTicketDTOByIdAsync(int ticketId)
-        {
-            var ticket = await _ticketRepository.GetByIdAsync(ticketId);
-
-            if (ticket != null)
-            {
-                var ticketDTO = new TicketDTO
-                {
-                    Name = ticket.Name,
-                    Email = ticket.Email
-                };
-                return ticketDTO;
-            }
-            return null;
         }
 
         public async Task<Ticket> CreateTicketAsync(Ticket ticket)
@@ -117,22 +88,20 @@ namespace ApiTest.Services
             return false;
         }
 
-        public async Task<List<TicketDTO>> GetTicketsDTOByUser(int userId)
+        public async Task<List<Ticket>> GetTicketsByUser(User user)
         {
             var tickets = await _ticketRepository.GetAllAsync();
-            var result = new List<TicketDTO>();
+            var result = new List<Ticket>();
             if(tickets != null)
             {
                 foreach (var ticket in tickets)
                 {
-                    if (ticket.User.Id == userId)
+                    if (ticket != null)
                     {
-                        var ticketDTO = new TicketDTO
-                        {
-                            Name = ticket.Name,
-                            Email = ticket.Email
-                        };
-                        result.Add(ticketDTO);
+                        if (ticket.UserID == user.Id)
+                        {                         
+                            result.Add(ticket);
+                        }
                     }
                 }
                 return result;

@@ -13,10 +13,12 @@ namespace ApiTest.Controllers
     public class TicketController : ControllerBase
     {
         private readonly TicketService _ticketService;
+        private readonly UserService _userService;
 
-        public TicketController(TicketService ticketService)
+        public TicketController(TicketService ticketService, UserService userService)
         {
             _ticketService = ticketService;
+            _userService = userService;
         }
 
         //[Authorize(Roles = "SupportManager")]
@@ -31,17 +33,6 @@ namespace ApiTest.Controllers
             return BadRequest();
         }
 
-        [HttpGet("tickets-dto")]
-        public async Task<ActionResult<IEnumerable<TicketDTO>>> GetTicketsDTO()
-        {
-            var ticketsDTO = await _ticketService.GetAllTicketsDTOAsync();
-            if (ticketsDTO != null)
-            {
-                return ticketsDTO;
-            }
-            return BadRequest();
-        }
-
         [HttpGet("{id}")]
         public async Task<ActionResult<Ticket>> GetTicket(int id)
         {
@@ -52,17 +43,6 @@ namespace ApiTest.Controllers
                 return NotFound();
             }
 
-            return ticket;
-        }
-
-        [HttpGet("{id}-dto")]
-        public async Task<ActionResult<TicketDTO>> GetTicketDTO(int id)
-        {
-            var ticket = await _ticketService.GetTicketDTOByIdAsync(id);
-            if (ticket == null)
-            {
-                return NotFound();
-            }
             return ticket;
         }
 
@@ -81,22 +61,6 @@ namespace ApiTest.Controllers
             return Ok();
         }
 
-        [HttpPut("{id}-add-message")]
-        public async Task<IActionResult> AddMessageToTicket(int id, MessageDTO messageDTO)
-        {
-            Ticket ticket = await _ticketService.GetTicketByIdAsync(id);
-
-            if(ticket == null)
-            {
-                return BadRequest();
-            }
-            ticket.Messages.Add(new Message(messageDTO.Content, messageDTO.TicketID));
-
-            await _ticketService.UpdateTicketAsync(id, ticket);
-
-            return Ok();
-        }
-
         [HttpPost]
         public async Task<ActionResult<Ticket>> PostTicket(TicketCreationDTO ticketCreatorDTO)
         {
@@ -110,9 +74,11 @@ namespace ApiTest.Controllers
             }
 
             Ticket ticket = new Ticket(ticketCreatorDTO.TicketDTO.Name, ticketCreatorDTO.TicketDTO.Email);
+
+
             if (ticketCreatorDTO.MessageDTO != null)
             {
-                Message message = new Message(ticketCreatorDTO.MessageDTO.Content, ticketCreatorDTO.MessageDTO.TicketID);
+                Message message = new Message(ticketCreatorDTO.MessageDTO.Content, ticket.Id);
                 if (!ticketCreatorDTO.MessageDTO.Attachments.IsNullOrEmpty())
                 {
                     foreach (var attachment in ticketCreatorDTO.MessageDTO.Attachments)
@@ -127,7 +93,6 @@ namespace ApiTest.Controllers
                 }
                 ticket.Messages.Add(message);
             }
-
 
             await _ticketService.CreateTicketAsync(ticket);
 
@@ -186,15 +151,16 @@ namespace ApiTest.Controllers
         }
 
         //[Authorize(Roles = "SupportTechnician")]
-        [HttpGet("{id}-{user.id}")]
-        public async Task<ActionResult<IEnumerable<TicketDTO>>> GetTicketsDTOByUser(int userId)
+        [HttpGet("tickets-{id}")]
+        public async Task<ActionResult<IEnumerable<Ticket>>> GetTicketsByUser(int userId)
         {
-            var ticketsDTO = await _ticketService.GetTicketsDTOByUser(userId);
-            if (ticketsDTO == null)
+            var user = await _userService.GetUserByIdAsync(userId);
+            var tickets = await _ticketService.GetTicketsByUser(user);
+            if (tickets == null)
             {
                 return BadRequest();
             }
-            return ticketsDTO;
+            return Ok(tickets);
         }
 
         private async Task<string> SaveAttachmentToFileSystem(IFormFile attachment)

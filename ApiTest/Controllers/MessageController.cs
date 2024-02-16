@@ -12,10 +12,12 @@ namespace ApiTest.Controllers
     public class MessageController : Controller
     {
         private readonly MessageService _messageService;
+        private readonly TicketService _ticketService;
 
-        public MessageController(MessageService messageService)
+        public MessageController(MessageService messageService, TicketService ticketService)
         {
             _messageService = messageService;
+            _ticketService = ticketService;
         }
 
         [HttpGet]
@@ -97,6 +99,7 @@ namespace ApiTest.Controllers
                     }
                 }
             }
+            message.Ticket = await _ticketService.GetTicketByIdAsync(messageDTO.TicketID);
             if (message == null)
             {
                 return Problem("Entity 'message' is null.");
