@@ -125,7 +125,7 @@ namespace ApiTest.Controllers
             {
                 // Aquí puedes generar y devolver un token de autenticación JWT u otro tipo de respuesta apropiada.
                 var token = GenerateJwtToken(user);
-                return Ok(token);
+                return Ok(new { token, userId = user.Id, role = "SupportTechnician" });
             }
             else
             {
@@ -142,7 +142,8 @@ namespace ApiTest.Controllers
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                // Puedes agregar más reclamaciones según sea necesario
+                new Claim("userId", user.Id.ToString()),
+                new Claim("role", "SupportTechnician"), // Por ejemplo, puedes proporcionar el rol del usuario aquí
             };
 
             var token = new JwtSecurityToken(
