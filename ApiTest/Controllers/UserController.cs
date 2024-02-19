@@ -8,6 +8,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ApiTest.Controllers
 {
@@ -123,9 +125,19 @@ namespace ApiTest.Controllers
             var result = await _signInManager.PasswordSignInAsync(user, loginDTO.Password, false, lockoutOnFailure: false);
             if (result.Succeeded)
             {
+                var ticketIdsList = new List<int>();
+
+                foreach (var ticket in user.Tickets)
+                {
+                    if (ticket != null)
+                    {
+                        ticketIdsList.Add(ticket.Id);
+                    }
+                }
+                var ticketIds = ticketIdsList.ToArray<int>();
                 // Aquí puedes generar y devolver un token de autenticación JWT u otro tipo de respuesta apropiada.
                 var token = GenerateJwtToken(user);
-                return Ok(new { token, userId = user.Id, role = "SupportTechnician" });
+                return Ok(new { token, userId = user.Id, userName = user.UserName, email = user.Email, role = "SupportTechnician", ticketIds});
             }
             else
             {
@@ -137,13 +149,25 @@ namespace ApiTest.Controllers
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("!$Uw6e~T4%tQ@z#sXv9&gYb2^hV*pN7cF")); // Cambia esto por una clave secreta segura
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            var ticketIds = new List<int>();
+
+            foreach (var ticket in user.Tickets)
+            {
+                if(ticket != null)
+                {
+                    ticketIds.Add(ticket.Id);
+                }
+            }
 
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim("userId", user.Id.ToString()),
-                new Claim("role", "SupportTechnician"), // Por ejemplo, puedes proporcionar el rol del usuario aquí
+                new Claim("userName", user.UserName.ToString()),
+                new Claim("email", user.Email.ToString()),
+                new Claim("role", "SupportTechnician"),
+                new Claim("ticketIds", JsonSerializer.Serialize(ticketIds))
             };
 
             var token = new JwtSecurityToken(
