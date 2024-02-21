@@ -88,7 +88,7 @@ namespace ApiTest.Services
             return false;
         }
 
-        public async Task<List<Ticket>> GetTicketsByUser(User user)
+        public async Task<List<Ticket?>> GetTicketsByUserAsync(User user)
         {
             var tickets = await _ticketRepository.GetAllAsync();
             var result = new List<Ticket>();

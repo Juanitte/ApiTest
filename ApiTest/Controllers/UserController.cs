@@ -19,12 +19,14 @@ namespace ApiTest.Controllers
     public class UserController : ControllerBase
     {
         private readonly UserService _userService;
+        private readonly TicketService _ticketService;
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
         private readonly SignInManager<User> _signInManager;
-        public UserController(UserService userService, UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager, SignInManager<User> signInManager)
+        public UserController(UserService userService, TicketService ticketService, UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager, SignInManager<User> signInManager)
         {
             _userService = userService;
+            _ticketService = ticketService;
             _userManager = userManager;
             _roleManager = roleManager;
             _signInManager = signInManager;
@@ -125,6 +127,8 @@ namespace ApiTest.Controllers
             var result = await _signInManager.PasswordSignInAsync(user, loginDTO.Password, false, lockoutOnFailure: false);
             if (result.Succeeded)
             {
+                user.Tickets = await _ticketService.GetTicketsByUserAsync(user);
+
                 var ticketIdsList = new List<int>();
 
                 foreach (var ticket in user.Tickets)
@@ -134,10 +138,9 @@ namespace ApiTest.Controllers
                         ticketIdsList.Add(ticket.Id);
                     }
                 }
-                var ticketIds = ticketIdsList.ToArray<int>();
                 // Aquí puedes generar y devolver un token de autenticación JWT u otro tipo de respuesta apropiada.
                 var token = GenerateJwtToken(user);
-                return Ok(new { token, userId = user.Id, userName = user.UserName, email = user.Email, role = "SupportTechnician", ticketIds});
+                return Ok(new { token, userId = user.Id, userName = user.UserName, email = user.Email, role = "SupportTechnician", ticketIdsList});
             }
             else
             {

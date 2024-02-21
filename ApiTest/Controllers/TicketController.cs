@@ -155,7 +155,7 @@ namespace ApiTest.Controllers
         public async Task<ActionResult<IEnumerable<Ticket>>> GetTicketsByUser(int userId)
         {
             var user = await _userService.GetUserByIdAsync(userId);
-            var tickets = await _ticketService.GetTicketsByUser(user);
+            var tickets = await _ticketService.GetTicketsByUserAsync(user);
             if (tickets == null)
             {
                 return BadRequest();
