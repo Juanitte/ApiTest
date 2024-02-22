@@ -8,6 +8,7 @@ namespace ApiTest.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+        public string Title { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
         public DateTime Timestamp { get; set; }
@@ -21,6 +22,7 @@ namespace ApiTest.Models
 
         public Ticket()
         {
+            this.Title = string.Empty;
             this.Name = string.Empty;
             this.Email = string.Empty;
             this.Timestamp = DateTime.Now;
@@ -28,8 +30,9 @@ namespace ApiTest.Models
             this.Priority = Priorities.NOT_SURE.ToString();
             this.State = States.PENDING.ToString();
         }
-        public Ticket(string name, string email)
+        public Ticket(string title, string name, string email)
         {
+            this.Title = title;
             this.Name = name;
             this.Email = email;
             this.Timestamp = DateTime.Now;
@@ -39,6 +42,7 @@ namespace ApiTest.Models
         }
 
         public Ticket(Message message) {
+            this.Title = string.Empty;
             this.Name = string.Empty;
             this.Email = string.Empty;
             this.Timestamp = DateTime.Now;
@@ -47,8 +51,9 @@ namespace ApiTest.Models
             this.State = States.PENDING.ToString();
             this.Messages.Add(message);
         }
-        public Ticket(string name, string email, Message message)
+        public Ticket(string title, string name, string email, Message message)
         {
+            this.Title = title;
             this.Name = name;
             this.Email = email;
             this.Timestamp = DateTime.Now;

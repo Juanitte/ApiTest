@@ -8,7 +8,7 @@
         public TicketCreationDTO()
         {
             this.TicketDTO = new TicketDTO();
-            this.MessageDTO = null;
+            this.MessageDTO = new TMessageDTO();
         }
         public TicketCreationDTO(TicketDTO ticket, TMessageDTO message) 
         { 

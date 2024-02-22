@@ -62,8 +62,15 @@ namespace ApiTest.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Ticket>> PostTicket(TicketCreationDTO ticketCreatorDTO)
+        public async Task<ActionResult<Ticket>> PostTicket([FromForm] TicketCreationDTO ticketCreatorDTO)
         {
+            Console.WriteLine("Datos recibidos en el controlador:");
+            Console.WriteLine("Title: " + ticketCreatorDTO.TicketDTO.Title);
+            Console.WriteLine("Name: " + ticketCreatorDTO.TicketDTO.Name);
+            Console.WriteLine("Email: " + ticketCreatorDTO.TicketDTO.Email);
+            Console.WriteLine("Content: " + ticketCreatorDTO.MessageDTO.Content);
+            Console.WriteLine("Attachments: " + ticketCreatorDTO.MessageDTO.Attachments);
+
             if (ticketCreatorDTO == null)
             {
                 return Problem("Entity 'ticketCreatorDTO' is null.");
@@ -72,27 +79,28 @@ namespace ApiTest.Controllers
             {
                 return Problem("Entity 'ticketDTO' is null");
             }
-
-            Ticket ticket = new Ticket(ticketCreatorDTO.TicketDTO.Name, ticketCreatorDTO.TicketDTO.Email);
-
-
-            if (ticketCreatorDTO.MessageDTO != null)
+            if(ticketCreatorDTO.MessageDTO == null)
             {
-                Message message = new Message(ticketCreatorDTO.MessageDTO.Content, ticket.Id);
-                if (!ticketCreatorDTO.MessageDTO.Attachments.IsNullOrEmpty())
+                return Problem("Entity 'messageDTO' is null");
+            }
+
+            Ticket ticket = new Ticket(ticketCreatorDTO.TicketDTO.Title, ticketCreatorDTO.TicketDTO.Name, ticketCreatorDTO.TicketDTO.Email);
+            
+            Message message = new Message(ticketCreatorDTO.MessageDTO.Content, ticket.Id);
+
+            if (!ticketCreatorDTO.MessageDTO.Attachments.IsNullOrEmpty())
+            {
+                foreach (var attachment in ticketCreatorDTO.MessageDTO.Attachments)
                 {
-                    foreach (var attachment in ticketCreatorDTO.MessageDTO.Attachments)
+                    if (attachment != null)
                     {
-                        if (attachment != null)
-                        {
-                            string attachmentPath = await SaveAttachmentToFileSystem(attachment);
-                            Attachment newAttachment = new Attachment(attachmentPath, message.Id);
-                            message.AttachmentPaths.Add(newAttachment);
-                        }
+                        string attachmentPath = await SaveAttachmentToFileSystem(attachment);
+                        Attachment newAttachment = new Attachment(attachmentPath, message.Id);
+                        message.AttachmentPaths.Add(newAttachment);
                     }
                 }
-                ticket.Messages.Add(message);
             }
+            ticket.Messages.Add(message);
 
             await _ticketService.CreateTicketAsync(ticket);
 

@@ -6,19 +6,45 @@ namespace ApiTest.Services
     public class MessageService
     {
         private readonly GenericRepository<Message> _messageRepository;
+        private readonly GenericRepository<Attachment> _attachmentRepository;
 
-        public MessageService(GenericRepository<Message> messageRepository)
+        public MessageService(GenericRepository<Message> messageRepository, GenericRepository<Attachment> attachmentRepository)
         {
             _messageRepository = messageRepository;
+            _attachmentRepository = attachmentRepository;
         }
 
         public async Task<List<Message>> GetAllMessagesAsync()
         {
-            return await _messageRepository.GetAllAsync();
+            var messages =  await _messageRepository.GetAllAsync();
+            var attachments = await _attachmentRepository.GetAllAsync();
+
+            foreach (var message in messages)
+            {
+                foreach (var attachment in attachments)
+                {
+                    if(message.Id == attachment.MessageID)
+                    {
+                        message.AttachmentPaths.Add(attachment);
+                    }
+                }
+            }
+
+            return messages;
         }
         public async Task<Message> GetMessageByIdAsync(int messageId)
         {
-            return await _messageRepository.GetByIdAsync(messageId);
+            var message =  await _messageRepository.GetByIdAsync(messageId);
+            var attachments = await _attachmentRepository.GetAllAsync();
+
+            foreach (var attachment in attachments)
+            {
+                if (message.Id == attachment.MessageID)
+                {
+                    message.AttachmentPaths.Add(attachment);
+                }
+            }
+            return message;
         }
 
         public async Task<Message> CreateMessageAsync(Message message)
@@ -44,11 +70,21 @@ namespace ApiTest.Services
         public async Task DeleteMessageAsync(int messageId)
         {
             await _messageRepository.DeleteAsync(messageId);
+            var attachments = await _attachmentRepository.GetAllAsync();
+
+            foreach (var attachment in attachments)
+            {
+                if(attachment.MessageID == messageId)
+                {
+                    await _attachmentRepository.DeleteAsync(attachment.Id);
+                }
+            }
         }
 
         public async Task<List<Message>> GetMessagesByTicketAsync(int ticketId)
         {
             var messages = await _messageRepository.GetAllAsync();
+            var attachments = await _attachmentRepository.GetAllAsync();
 
             if (messages == null)
             {
@@ -59,6 +95,13 @@ namespace ApiTest.Services
             {
                 if (message.TicketID == ticketId)
                 {
+                    foreach (var attachment in attachments)
+                    {
+                        if(attachment.MessageID == message.Id)
+                        {
+                            message.AttachmentPaths.Add(attachment);
+                        }
+                    }
                     result.Add(message);
                 }
             }
