@@ -123,7 +123,7 @@ namespace ApiTest.Controllers
         }
 
         //[Authorize(Roles = "SupportManager")]
-        [HttpPut("{id}-prio")]
+        [HttpPut("{ticketId}-prio-{priority}")]
         public async Task<IActionResult> ChangePriority(int ticketId, Priorities priority)
         {
             var result = await _ticketService.ChangePriority(ticketId, priority);
@@ -135,7 +135,7 @@ namespace ApiTest.Controllers
         }
 
        // [Authorize(Roles = "SupportManager")]
-        [HttpPut("{id}-state")]
+        [HttpPut("{ticketId}-state-{state}")]
         public async Task<IActionResult> ChangeState(int ticketId, States state)
         {
             var result = await _ticketService.ChangeState(ticketId, state);
@@ -147,7 +147,7 @@ namespace ApiTest.Controllers
         }
 
         //[Authorize(Roles = "SupportManager")]
-        [HttpPut("{id}-asign")]
+        [HttpPut("{ticketId}-asign-{userId}")]
         public async Task<IActionResult> AsignTicket(int ticketId, int userId)
         {
             var result = await _ticketService.AsignTicket(ticketId, userId);
@@ -158,12 +158,13 @@ namespace ApiTest.Controllers
             return BadRequest();
         }
 
-        //[Authorize(Roles = "SupportTechnician")]
-        [HttpGet("tickets-{id}")]
+        //[Authorize(Roles = "SupportManager, SupportTechnician")]
+        [HttpGet("tickets-{userId}")]
         public async Task<ActionResult<IEnumerable<Ticket>>> GetTicketsByUser(int userId)
         {
-            var user = await _userService.GetUserByIdAsync(userId);
-            var tickets = await _ticketService.GetTicketsByUserAsync(user);
+            var tickets = await _ticketService.GetTicketsByUserAsync(userId);
+            Console.WriteLine("Datos a enviar al front:");
+            Console.WriteLine("Id: " + tickets.First().Id);
             if (tickets == null)
             {
                 return BadRequest();

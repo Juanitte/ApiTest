@@ -88,7 +88,7 @@ namespace ApiTest.Services
             return false;
         }
 
-        public async Task<List<Ticket?>> GetTicketsByUserAsync(User user)
+        public async Task<List<Ticket?>> GetTicketsByUserAsync(int userId)
         {
             var tickets = await _ticketRepository.GetAllAsync();
             var result = new List<Ticket>();
@@ -98,7 +98,7 @@ namespace ApiTest.Services
                 {
                     if (ticket != null)
                     {
-                        if (ticket.UserID == user.Id)
+                        if (ticket.UserID == userId)
                         {                         
                             result.Add(ticket);
                         }

@@ -36,6 +36,10 @@ namespace ApiTest.Controllers
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             var users = await _userService.GetAllUsersAsync();
+            if(users == null)
+            {
+                return BadRequest();
+            }
             return Ok(users);
         }
 
@@ -127,20 +131,9 @@ namespace ApiTest.Controllers
             var result = await _signInManager.PasswordSignInAsync(user, loginDTO.Password, false, lockoutOnFailure: false);
             if (result.Succeeded)
             {
-                user.Tickets = await _ticketService.GetTicketsByUserAsync(user);
-
-                var ticketIdsList = new List<int>();
-
-                foreach (var ticket in user.Tickets)
-                {
-                    if (ticket != null)
-                    {
-                        ticketIdsList.Add(ticket.Id);
-                    }
-                }
                 // Aquí puedes generar y devolver un token de autenticación JWT u otro tipo de respuesta apropiada.
                 var token = GenerateJwtToken(user);
-                return Ok(new { token, userId = user.Id, userName = user.UserName, email = user.Email, role = "SupportTechnician", ticketIdsList});
+                return Ok(new { token, userId = user.Id, userName = user.UserName, email = user.Email, role = "SupportTechnician"});
             }
             else
             {
@@ -169,8 +162,7 @@ namespace ApiTest.Controllers
                 new Claim("userId", user.Id.ToString()),
                 new Claim("userName", user.UserName.ToString()),
                 new Claim("email", user.Email.ToString()),
-                new Claim("role", "SupportTechnician"),
-                new Claim("ticketIds", JsonSerializer.Serialize(ticketIds))
+                new Claim("role", "SupportTechnician")
             };
 
             var token = new JwtSecurityToken(
