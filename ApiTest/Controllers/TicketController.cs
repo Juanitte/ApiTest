@@ -14,11 +14,13 @@ namespace ApiTest.Controllers
     {
         private readonly TicketService _ticketService;
         private readonly UserService _userService;
+        private readonly MessageService _messageService;
 
-        public TicketController(TicketService ticketService, UserService userService)
+        public TicketController(TicketService ticketService, UserService userService, MessageService messageService)
         {
             _ticketService = ticketService;
             _userService = userService;
+            _messageService = messageService;
         }
 
         //[Authorize(Roles = "SupportManager")]
@@ -115,6 +117,14 @@ namespace ApiTest.Controllers
             if (ticket == null)
             {
                 return NotFound();
+            }
+            var messages = await _messageService.GetMessagesByTicketAsync(id);
+            foreach(var message in messages)
+            {
+                if (message != null)
+                {
+                    await _messageService.DeleteMessageAsync(message.Id);
+                }
             }
 
             await _ticketService.DeleteTicketAsync(id);
