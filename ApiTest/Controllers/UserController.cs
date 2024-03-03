@@ -131,9 +131,17 @@ namespace ApiTest.Controllers
             var result = await _signInManager.PasswordSignInAsync(user, loginDTO.Password, false, lockoutOnFailure: false);
             if (result.Succeeded)
             {
-                // Aquí puedes generar y devolver un token de autenticación JWT u otro tipo de respuesta apropiada.
+                var roles = await _userManager.GetRolesAsync(user);
+                if (roles.IsNullOrEmpty())
+                {
+                    Console.WriteLine("Roles is Empty");
+                }else
+                {
+                    Console.WriteLine("Roles is not Empty");
+                }
+                var userRole = roles.FirstOrDefault();
                 var token = GenerateJwtToken(user);
-                return Ok(new { token, userId = user.Id, userName = user.UserName, email = user.Email, role = "SupportTechnician"});
+                return Ok(new { token, userId = user.Id, userName = user.UserName, email = user.Email, role = userRole });
             }
             else
             {
@@ -161,8 +169,7 @@ namespace ApiTest.Controllers
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim("userId", user.Id.ToString()),
                 new Claim("userName", user.UserName.ToString()),
-                new Claim("email", user.Email.ToString()),
-                new Claim("role", "SupportTechnician")
+                new Claim("email", user.Email.ToString())
             };
 
             var token = new JwtSecurityToken(
