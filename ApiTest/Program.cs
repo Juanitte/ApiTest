@@ -4,8 +4,11 @@ using ApiTest.Models;
 using ApiTest.Repositories;
 using ApiTest.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,10 +35,7 @@ builder.Services.AddScoped<GenericRepository<Ticket>>();
 builder.Services.AddScoped<GenericRepository<Message>>();
 builder.Services.AddScoped<GenericRepository<Attachment>>();
 
-builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
-{
-    // Identity options config
-})
+builder.Services.AddIdentity<User, IdentityRole<int>>()
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders()
 .AddRoles<IdentityRole<int>>();
@@ -45,6 +45,29 @@ builder.Services.Configure<IdentityOptions>(options =>
 {
     // Configure your identity options here
 });
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}
+)
+    .AddJwtBearer(options =>
+    {
+        options.SaveToken = true;
+        options.RequireHttpsMetadata = false;
+        options.TokenValidationParameters = new TokenValidationParameters()
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["JWTKey:ValidAudience"],
+            ValidIssuer = builder.Configuration["JWTKey:ValidIssuer"],
+            ClockSkew = TimeSpan.Zero,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWTKey:Secret"]))
+        };
+    }
+    );
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -83,16 +106,17 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-
 // Configure CORS
 app.UseCors(options =>
 {
-    options.AllowAnyOrigin()
+    options.WithOrigins("http://localhost:4200")
            .AllowAnyHeader()
            .AllowAnyMethod();
 });
+app.UseAuthentication();
+app.UseAuthorization();
+
+
 
 app.MapControllers();
 await app.RunAsync();

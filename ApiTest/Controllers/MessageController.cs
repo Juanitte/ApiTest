@@ -1,13 +1,15 @@
 ﻿using ApiTest.Models;
 using ApiTest.Models.DTOs;
 using ApiTest.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 namespace ApiTest.Controllers
 {
-    //[Authorize]
     [Route("api/[controller]")]
     public class MessageController : Controller
     {
@@ -44,9 +46,14 @@ namespace ApiTest.Controllers
             return message;
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutMessage(int id, MessageDTO messageDTO)
         {
+            if (!ValidateToken(out string token))
+            {
+                return Unauthorized();
+            }
             Message message = await _messageService.GetMessageByIdAsync(id);
             if (message == null)
             {
@@ -109,9 +116,14 @@ namespace ApiTest.Controllers
             return Ok(message);
         }
 
+        [Authorize(Roles = "SupportManager")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMessage(int id)
         {
+            if (!ValidateToken(out string token))
+            {
+                return Unauthorized();
+            }
             var message = await _messageService.GetMessageByIdAsync(id);
             if (message == null)
             {
@@ -136,18 +148,41 @@ namespace ApiTest.Controllers
 
         private async Task<string> SaveAttachmentToFileSystem(IFormFile attachment)
         {
-            // Generar un nombre de archivo único
             var fileName = Guid.NewGuid().ToString() + Path.GetExtension(attachment.FileName);
-            // Ruta donde se guardará el archivo en el sistema de archivos
             var filePath = Path.Combine("C:/ProyectoIoT/Back/ApiTest/AttachmentStorage", fileName);
 
-            // Guardar el archivo en el sistema de archivos
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await attachment.CopyToAsync(stream);
             }
 
             return filePath;
+        }
+
+        private bool ValidateToken(out string token)
+        {
+            token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes("!$Uw6e~T4%tQ@z#sXv9&gYb2^hV*pN7cF");
+            try
+            {
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = "ApiTest",
+                    ValidateAudience = true,
+                    ValidAudience = "SupportUser",
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

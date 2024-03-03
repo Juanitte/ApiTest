@@ -7,13 +7,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace ApiTest.Controllers
 {
-    //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -67,7 +67,6 @@ namespace ApiTest.Controllers
             user.UserName = userDTO.UserName;
             user.Email = userDTO.Email;
             user.PhoneNumber = userDTO.PhoneNumber;
-            // No necesitas manejar el EntityState.Modified aquí, UserService puede encargarse de eso.
             var result = await _userService.UpdateUserAsync(id, user);
 
             if (result.Succeeded)
@@ -76,7 +75,6 @@ namespace ApiTest.Controllers
             }
             else
             {
-                // Maneja errores de actualización según sea necesario.
                 return Problem("Error updating user.");
             }
         }
@@ -115,7 +113,6 @@ namespace ApiTest.Controllers
             }
             else
             {
-                // Maneja errores de eliminación según sea necesario.
                 return Problem("Error deleting user.");
             }
         }
@@ -153,15 +150,7 @@ namespace ApiTest.Controllers
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("!$Uw6e~T4%tQ@z#sXv9&gYb2^hV*pN7cF")); // Cambia esto por una clave secreta segura
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var ticketIds = new List<int>();
-
-            foreach (var ticket in user.Tickets)
-            {
-                if(ticket != null)
-                {
-                    ticketIds.Add(ticket.Id);
-                }
-            }
+            
 
             var claims = new[]
             {
@@ -172,15 +161,44 @@ namespace ApiTest.Controllers
                 new Claim("email", user.Email.ToString())
             };
 
-            var token = new JwtSecurityToken(
-                issuer: "ApiTest",
-                audience: "SupportUser",
-                claims: claims,
-                expires: DateTime.UtcNow.AddHours(1), // Cambia esto según tus requisitos de expiración
-                signingCredentials: credentials
-            );
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Issuer = "ApiTest",
+                Audience = "SupportUser",
+                Expires = DateTime.UtcNow.AddHours(8),
+                SigningCredentials = credentials,
+                Subject = new ClaimsIdentity(claims)
+            };
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+
+        private bool ValidateToken(out string token)
+        {
+            token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes("!$Uw6e~T4%tQ@z#sXv9&gYb2^hV*pN7cF");
+            try
+            {
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = "ApiTest",
+                    ValidateAudience = true,
+                    ValidAudience = "SupportUser",
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

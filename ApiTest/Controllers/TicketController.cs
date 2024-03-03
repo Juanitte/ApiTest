@@ -4,10 +4,11 @@ using ApiTest.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 namespace ApiTest.Controllers
 {
-    //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class TicketController : ControllerBase
@@ -23,10 +24,14 @@ namespace ApiTest.Controllers
             _messageService = messageService;
         }
 
-        //[Authorize(Roles = "SupportManager")]
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Ticket>>> GetTickets()
         {
+            if (!ValidateToken(out string token))
+            {
+                return Unauthorized();
+            }
             var tickets = await _ticketService.GetAllTicketsAsync();
             if (tickets != null)
             {
@@ -35,9 +40,14 @@ namespace ApiTest.Controllers
             return BadRequest();
         }
 
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<Ticket>> GetTicket(int id)
         {
+            if (!ValidateToken(out string token))
+            {
+                return Unauthorized();
+            }
             var ticket = await _ticketService.GetTicketByIdAsync(id);
 
             if (ticket == null)
@@ -48,16 +58,19 @@ namespace ApiTest.Controllers
             return ticket;
         }
 
-        //[Authorize(Roles = "SupportManager")]
+        [Authorize(Roles = "SupportManager")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTicket(int id, Ticket ticket)
         {
+            if (!ValidateToken(out string token))
+            {
+                return Unauthorized();
+            }
             if (id != ticket.Id)
             {
                 return BadRequest();
             }
 
-            // No necesitas manejar el EntityState.Modified aquí, UserService puede encargarse de eso.
             await _ticketService.UpdateTicketAsync(id, ticket);
 
             return Ok();
@@ -66,12 +79,6 @@ namespace ApiTest.Controllers
         [HttpPost]
         public async Task<ActionResult<Ticket>> PostTicket([FromForm] TicketCreationDTO ticketCreatorDTO)
         {
-            Console.WriteLine("Datos recibidos en el controlador:");
-            Console.WriteLine("Title: " + ticketCreatorDTO.TicketDTO.Title);
-            Console.WriteLine("Name: " + ticketCreatorDTO.TicketDTO.Name);
-            Console.WriteLine("Email: " + ticketCreatorDTO.TicketDTO.Email);
-            Console.WriteLine("Content: " + ticketCreatorDTO.MessageDTO.Content);
-            Console.WriteLine("Attachments: " + ticketCreatorDTO.MessageDTO.Attachments);
 
             if (ticketCreatorDTO == null)
             {
@@ -109,10 +116,14 @@ namespace ApiTest.Controllers
             return Ok(ticket);
         }
 
-        //[Authorize(Roles = "SupportManager")]
+        [Authorize(Roles = "SupportManager")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTicket(int id)
         {
+            if (!ValidateToken(out string token))
+            {
+                return Unauthorized();
+            }
             var ticket = await _ticketService.GetTicketByIdAsync(id);
             if (ticket == null)
             {
@@ -132,10 +143,14 @@ namespace ApiTest.Controllers
             return Ok() ;
         }
 
-        //[Authorize(Roles = "SupportManager")]
+        [Authorize(Roles = "SupportManager")]
         [HttpPut("{ticketId}-prio-{priority}")]
         public async Task<IActionResult> ChangePriority(int ticketId, Priorities priority)
         {
+            if (!ValidateToken(out string token))
+            {
+                return Unauthorized();
+            }
             var result = await _ticketService.ChangePriority(ticketId, priority);
             if (result)
             {
@@ -144,10 +159,14 @@ namespace ApiTest.Controllers
             return BadRequest();
         }
 
-       // [Authorize(Roles = "SupportManager")]
+        [Authorize(Roles = "SupportManager")]
         [HttpPut("{ticketId}-state-{state}")]
         public async Task<IActionResult> ChangeState(int ticketId, States state)
         {
+            if (!ValidateToken(out string token))
+            {
+                return Unauthorized();
+            }
             var result = await _ticketService.ChangeState(ticketId, state);
             if (result)
             {
@@ -156,10 +175,14 @@ namespace ApiTest.Controllers
             return BadRequest();
         }
 
-        //[Authorize(Roles = "SupportManager")]
+        [Authorize(Roles = "SupportManager")]
         [HttpPut("{ticketId}-asign-{userId}")]
         public async Task<IActionResult> AsignTicket(int ticketId, int userId)
         {
+            if (!ValidateToken(out string token))
+            {
+                return Unauthorized();
+            }
             var result = await _ticketService.AsignTicket(ticketId, userId);
             if (result)
             {
@@ -168,13 +191,16 @@ namespace ApiTest.Controllers
             return BadRequest();
         }
 
-        //[Authorize(Roles = "SupportManager, SupportTechnician")]
+        [Authorize]
         [HttpGet("tickets-{userId}")]
         public async Task<ActionResult<IEnumerable<Ticket>>> GetTicketsByUser(int userId)
         {
+            if (!ValidateToken(out string token))
+            {
+                return Unauthorized();
+            }
+
             var tickets = await _ticketService.GetTicketsByUserAsync(userId);
-            Console.WriteLine("Datos a enviar al front:");
-            Console.WriteLine("Id: " + tickets.First().Id);
             if (tickets == null)
             {
                 return BadRequest();
@@ -184,18 +210,43 @@ namespace ApiTest.Controllers
 
         private async Task<string> SaveAttachmentToFileSystem(IFormFile attachment)
         {
-            // Generar un nombre de archivo único
             var fileName = Guid.NewGuid().ToString() + Path.GetExtension(attachment.FileName);
-            // Ruta donde se guardará el archivo en el sistema de archivos
             var filePath = Path.Combine("C:/ProyectoIoT/Back/ApiTest/AttachmentStorage", fileName);
 
-            // Guardar el archivo en el sistema de archivos
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await attachment.CopyToAsync(stream);
             }
 
             return filePath;
+        }
+
+        private bool ValidateToken(out string token)
+        {
+            token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+            Console.WriteLine(token);
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes("!$Uw6e~T4%tQ@z#sXv9&gYb2^hV*pN7cF");
+            try
+            {
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = "ApiTest",
+                    ValidateAudience = true,
+                    ValidAudience = "SupportUser",
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }
