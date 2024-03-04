@@ -116,7 +116,7 @@ namespace ApiTest.Controllers
             return Ok(message);
         }
 
-        [Authorize(Roles = "SupportManager")]
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMessage(int id)
         {

@@ -58,7 +58,7 @@ namespace ApiTest.Controllers
             return ticket;
         }
 
-        [Authorize(Roles = "SupportManager")]
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTicket(int id, Ticket ticket)
         {
@@ -116,7 +116,7 @@ namespace ApiTest.Controllers
             return Ok(ticket);
         }
 
-        [Authorize(Roles = "SupportManager")]
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTicket(int id)
         {
@@ -143,7 +143,7 @@ namespace ApiTest.Controllers
             return Ok() ;
         }
 
-        [Authorize(Roles = "SupportManager")]
+        [Authorize]
         [HttpPut("{ticketId}-prio-{priority}")]
         public async Task<IActionResult> ChangePriority(int ticketId, Priorities priority)
         {
@@ -159,7 +159,7 @@ namespace ApiTest.Controllers
             return BadRequest();
         }
 
-        [Authorize(Roles = "SupportManager")]
+        [Authorize]
         [HttpPut("{ticketId}-state-{state}")]
         public async Task<IActionResult> ChangeState(int ticketId, States state)
         {
@@ -175,7 +175,7 @@ namespace ApiTest.Controllers
             return BadRequest();
         }
 
-        [Authorize(Roles = "SupportManager")]
+        [Authorize]
         [HttpPut("{ticketId}-asign-{userId}")]
         public async Task<IActionResult> AsignTicket(int ticketId, int userId)
         {
