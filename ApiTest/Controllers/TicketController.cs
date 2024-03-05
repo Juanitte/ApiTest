@@ -145,13 +145,29 @@ namespace ApiTest.Controllers
 
         [Authorize]
         [HttpPut("{ticketId}-prio-{priority}")]
-        public async Task<IActionResult> ChangePriority(int ticketId, Priorities priority)
+        public async Task<IActionResult> ChangePriority(int ticketId, int priority)
         {
             if (!ValidateToken(out string token))
             {
                 return Unauthorized();
             }
-            var result = await _ticketService.ChangePriority(ticketId, priority);
+            Priorities prio = Priorities.NOT_SURE;
+            switch (priority)
+            {
+                case 0: prio = Priorities.NOT_SURE;
+                    break;
+                case 1: prio = Priorities.HIGHEST;
+                    break;
+                case 2: prio = Priorities.HIGH;
+                    break;
+                case 3: prio = Priorities.MEDIUM;
+                    break;
+                case 4: prio = Priorities.LOW;
+                    break;
+                case 5: prio = Priorities.LOWEST;
+                    break;
+            }
+            var result = await _ticketService.ChangePriority(ticketId, prio);
             if (result)
             {
                 return Ok();
@@ -161,13 +177,25 @@ namespace ApiTest.Controllers
 
         [Authorize]
         [HttpPut("{ticketId}-state-{state}")]
-        public async Task<IActionResult> ChangeState(int ticketId, States state)
+        public async Task<IActionResult> ChangeState(int ticketId, int state)
         {
             if (!ValidateToken(out string token))
             {
                 return Unauthorized();
             }
-            var result = await _ticketService.ChangeState(ticketId, state);
+            States stateValue = States.PENDING;
+            switch (state)
+            {
+                case 0: stateValue = States.PENDING;
+                    break;
+                case 1: stateValue = States.OPENED;
+                    break;
+                case 2: stateValue = States.PAUSED;
+                    break;
+                case 3: stateValue = States.FINISHED;
+                    break;
+            }
+            var result = await _ticketService.ChangeState(ticketId, stateValue);
             if (result)
             {
                 return Ok();

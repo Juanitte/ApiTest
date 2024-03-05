@@ -135,7 +135,7 @@ namespace ApiTest.Controllers
             return Ok();
         }
 
-        [HttpGet("messages-ticket{ticket.id}")]
+        [HttpGet("messages-ticket{ticketId}")]
         public async Task<ActionResult<IEnumerable<Message>>> GetMessagesByTicket(int ticketId)
         {
             var messages = await _messageService.GetMessagesByTicketAsync(ticketId);
@@ -144,6 +144,25 @@ namespace ApiTest.Controllers
                 return BadRequest();
             }
             return messages;
+        }
+
+        [HttpGet("download/{attachmentPath}")]
+        public IActionResult DownloadAttachment(string attachmentPath)
+        {
+            string filePath = Path.Combine("C:/ProyectoIoT/Back/ApiTest/AttachmentStorage", attachmentPath);
+
+            if (System.IO.File.Exists(filePath))
+            {
+                byte[] fileBytes = System.IO.File.ReadAllBytes(filePath);
+
+                string contentType = "application/octet-stream";
+
+                return File(fileBytes, contentType, attachmentPath);
+            }
+            else
+            {
+                return NotFound("Archivo no encontrado");
+            }
         }
 
         private async Task<string> SaveAttachmentToFileSystem(IFormFile attachment)
