@@ -109,7 +109,7 @@ app.UseHttpsRedirection();
 // Configure CORS
 app.UseCors(options =>
 {
-    options.WithOrigins("http://localhost:4200")
+    options.AllowAnyOrigin()
            .AllowAnyHeader()
            .AllowAnyMethod();
 });
