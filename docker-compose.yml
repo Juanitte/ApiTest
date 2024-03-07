@@ -1,0 +1,32 @@
+version: '3.4'
+
+networks:
+  IoTProject:
+
+services:
+  api_test:
+    container_name: IoTProjectDB
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    ports:
+        - 8002:1433
+    environment:
+        - ACCEPT_EULA=Y
+        - SA_PASSWORD=Batraci0C0nPeluca
+    networks:
+        - IoTProject
+  apitest:
+    container_name: IotProjectAPI
+    image: ${DOCKER_REGISTRY-}apitest
+    build:
+      context: .
+      dockerfile: ApiTest/Dockerfile
+    ports:
+        - 8001:80
+    depends_on:
+        - api_test
+    environment:
+        - DB_HOST=IoTProjectDB
+        - DB_NAME=api_test
+        - DB_SA_PASSWORD=Batraci0C0nPeluca
+    networks:
+        - IoTProject
