@@ -97,7 +97,7 @@ using (var scope = app.Services.CreateScope())
     var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
 
     // Apply migrations and make sure that the default users and roles have been created
-    dbContext.Database.Migrate();
+    //dbContext.Database.Migrate();
 
     // Initialize roles and users
     await Roles.Initialize(userManager, roleManager);

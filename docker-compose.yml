@@ -14,6 +14,8 @@ services:
         - SA_PASSWORD=Batraci0C0nPeluca
     networks:
         - IoTProject
+    volumes:
+        - IoTProjectVolume:/var/opt/mssql
   apitest:
     container_name: IotProjectAPI
     image: ${DOCKER_REGISTRY-}apitest
@@ -30,3 +32,7 @@ services:
         - DB_SA_PASSWORD=Batraci0C0nPeluca
     networks:
         - IoTProject
+volumes:
+  IoTProjectVolume:
+    external: true
+  
